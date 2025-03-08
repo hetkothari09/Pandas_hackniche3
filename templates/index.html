@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Copilot - Login/Signup</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .form-container {
+            display: none;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+        .form-container.active {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .input-group {
+            position: relative;
+        }
+        .input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+        }
+        .input-group input {
+            padding-left: 2.5rem;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="glass-effect p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8">
+            <i class="fas fa-robot text-5xl text-indigo-600 mb-4"></i>
+            <h1 class="text-2xl font-bold text-gray-800">AI Copilot</h1>
+            <p class="text-gray-600">Your Intelligent Content Creation Partner</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex mb-8 bg-gray-100 rounded-lg p-1">
+            <button onclick="showForm('login')" 
+                    class="flex-1 py-2 text-center rounded-lg font-semibold transition-all duration-200 tab-btn"
+                    id="login-tab">
+                <i class="fas fa-sign-in-alt mr-2"></i>Login
+            </button>
+            <button onclick="showForm('signup')" 
+                    class="flex-1 py-2 text-center rounded-lg font-semibold transition-all duration-200 tab-btn"
+                    id="signup-tab">
+                <i class="fas fa-user-plus mr-2"></i>Sign Up
+            </button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="form-container active">
+            <form onsubmit="handleLogin(event)" class="space-y-6">
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="login-email" required placeholder="Enter your email"
+                           class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" required placeholder="Enter your password"
+                           class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <button type="submit"
+                        class="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-200 transform hover:scale-105">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </button>
+            </form>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" class="form-container">
+            <form onsubmit="handleSignup(event)" class="space-y-6">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="signup-name" required placeholder="Enter your name"
+                           class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="signup-email" required placeholder="Enter your email"
+                           class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="signup-password" required placeholder="Choose a password"
+                           class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <button type="submit"
+                        class="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition duration-200 transform hover:scale-105">
+                    <i class="fas fa-user-plus mr-2"></i>Sign Up
+                </button>
+            </form>
+        </div>
+
+        <!-- Alert Message -->
+        <div id="alert" class="mt-6 p-4 rounded-lg hidden transform transition-all duration-300"></div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfS56MY8WwFoO442ab8SX0zRSJpGVXNxk",
+            authDomain: "pandas-hackniche.firebaseapp.com",
+            databaseURL: "https://pandas-hackniche-default-rtdb.firebaseio.com",
+            projectId: "pandas-hackniche",
+            storageBucket: "pandas-hackniche.appspot.com",
+            messagingSenderId: "1098627590175",
+            appId: "1:1098627590175:web:6f5b60e6f27864f4e24bcc"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        function showForm(formType) {
+            // Update tab styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('text-gray-600');
+            });
+            document.getElementById(`${formType}-tab`).classList.add('bg-indigo-600', 'text-white');
+            document.getElementById(`${formType}-tab`).classList.remove('text-gray-600');
+
+            // Show/hide forms with animation
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.classList.remove('active');
+            });
+            setTimeout(() => {
+                document.getElementById(`${formType}-form`).classList.add('active');
+            }, 100);
+        }
+
+        function showAlert(message, isError = false) {
+            const alert = document.getElementById('alert');
+            alert.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${isError ? 'fa-exclamation-circle text-red-500' : 'fa-check-circle text-green-500'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Remove all possible classes first
+            alert.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700', 'transform', 'translate-y-0', 'opacity-100');
+            
+            // Add classes individually
+            if (isError) {
+                alert.classList.add('bg-red-100');
+                alert.classList.add('text-red-700');
+            } else {
+                alert.classList.add('bg-green-100');
+                alert.classList.add('text-green-700');
+            }
+            
+            alert.classList.add('transform');
+            alert.classList.add('translate-y-0');
+            alert.classList.add('opacity-100');
+            
+            // Clear any existing timeout
+            if (window.alertTimeout) {
+                clearTimeout(window.alertTimeout);
+            }
+            
+            // Set new timeout
+            window.alertTimeout = setTimeout(() => {
+                alert.classList.add('hidden');
+            }, 5000);
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            // Show loading state
+            const loginButton = event.target.querySelector('button[type="submit"]');
+            const originalText = loginButton.innerHTML;
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            loginButton.disabled = true;
+
+            try {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                // First, sign in with Firebase
+                try {
+                    await firebase.auth().signInWithEmailAndPassword(email, password);
+                } catch (firebaseError) {
+                    console.error('Firebase auth error:', firebaseError);
+                    throw new Error(firebaseError.message);
+                }
+
+                // Get the Firebase ID token
+                const firebaseUser = firebase.auth().currentUser;
+                const idToken = await firebaseUser.getIdToken();
+
+                // Now call your backend with the Firebase token
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({ 
+                        email,
+                        password,
+                        firebaseToken: idToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('Login successful! Redirecting...', false);
+                    localStorage.setItem('token', idToken);
+                    localStorage.setItem('userId', firebaseUser.uid);
+                    localStorage.setItem('userProfile', JSON.stringify(data.profile));
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert(error.message || 'Login failed. Please check your credentials.', true);
+            } finally {
+                // Restore button state
+                loginButton.innerHTML = originalText;
+                loginButton.disabled = false;
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            const signupButton = event.target.querySelector('button[type="submit"]');
+            const originalText = signupButton.innerHTML;
+            signupButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing up...';
+            signupButton.disabled = true;
+
+            try {
+                const name = document.getElementById('signup-name').value;
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+
+                // Create user in Firebase
+                try {
+                    const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                    await userCredential.user.updateProfile({ displayName: name });
+                } catch (firebaseError) {
+                    console.error('Firebase auth error:', firebaseError);
+                    throw new Error(firebaseError.message);
+                }
+
+                // Get the Firebase ID token
+                const firebaseUser = firebase.auth().currentUser;
+                const idToken = await firebaseUser.getIdToken();
+
+                // Call your backend to create the user profile
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('Signup successful! Please login.', false);
+                    await firebase.auth().signOut();
+                    setTimeout(() => {
+                        showForm('login');
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Signup failed');
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                showAlert(error.message || 'Signup failed. Please try again.', true);
+            } finally {
+                signupButton.innerHTML = originalText;
+                signupButton.disabled = false;
+            }
+        }
+
+        // Initialize active tab
+        showForm('login');
+    </script>
+</body>
+</html> 

@@ -1,3 +1,5 @@
 .env
 /venv
 firebase_key.json
+/generated_videos
+/generated_images
