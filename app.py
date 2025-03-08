@@ -16,6 +16,7 @@ import numpy as np
 from gradio_client import Client
 import re
 import firebase_admin.auth
+from functools import wraps
 
 # Load environment variables
 load_dotenv()
@@ -384,6 +385,71 @@ def update_user_profile():
         print(f"Profile update error: {str(e)}")
         return jsonify({"error": "Failed to update profile"}), 500
 
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'message': 'No authorization token provided'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route('/api/generate', methods=['POST'])
+@require_auth
+def generate():
+    try:
+        data = request.get_json()
+        
+        # Get Groq API key from environment
+        groq_api_key = os.getenv('GROQ_API_KEY')
+        if not groq_api_key:
+            return jsonify({'message': 'Server configuration error: API key not found'}), 500
+
+        # Prepare the request to Groq API
+        headers = {
+            'Authorization': f'Bearer {groq_api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Construct the API request body
+        api_request = {
+            'model': data.get('model', 'mixtral-8x7b-32768'),
+            'messages': [
+                {'role': 'system', 'content': data.get('systemPrompt', '')},
+                {'role': 'user', 'content': data.get('userPrompt', '')}
+            ],
+            'temperature': data.get('temperature', 0.7),
+            'max_tokens': data.get('max_tokens', 200)
+        }
+
+        # Make request to Groq API
+        response = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers=headers,
+            json=api_request
+        )
+
+        # Check if the request was successful
+        if response.status_code != 200:
+            error_data = response.json()
+            return jsonify({
+                'message': f'API Error: {error_data.get("error", {}).get("message", "Unknown error")}'
+            }), response.status_code
+
+        # Extract the generated content
+        response_data = response.json()
+        generated_content = response_data['choices'][0]['message']['content']
+
+        return jsonify({
+            'content': generated_content
+        })
+
+    except Exception as e:
+        print(f"Error in /api/generate: {str(e)}")
+        return jsonify({
+            'message': f'Failed to generate content: {str(e)}'
+        }), 500
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
 

@@ -155,6 +155,7 @@
             width: 80%;
             max-width: 500px;
             border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .dark-mode .modal-content {
             background: #1f2937;
@@ -180,6 +181,8 @@
             box-shadow: -5px 0 15px rgba(138, 43, 226, 0.2);
             z-index: 1000;
             backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
         }
 
         .ai-panel.open {
@@ -205,7 +208,6 @@
         .ai-feature-button {
             width: 100%;
             padding: 15px;
-            margin: 10px 0;
             background: rgba(138, 43, 226, 0.1);
             border: 1px solid rgba(138, 43, 226, 0.3);
             border-radius: 8px;
@@ -217,6 +219,8 @@
             gap: 12px;
             position: relative;
             overflow: hidden;
+            margin: 0;
+            flex-shrink: 0;
         }
 
         .ai-feature-button:hover {
@@ -262,10 +266,34 @@
             color: #fff;
             border-bottom: 1px solid rgba(138, 43, 226, 0.3);
             background: rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
         }
 
         .ai-panel-content {
             padding: 20px;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ai-panel-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .ai-panel-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .ai-panel-content::-webkit-scrollbar-thumb {
+            background: rgba(138, 43, 226, 0.3);
+            border-radius: 4px;
+        }
+
+        .ai-panel-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(138, 43, 226, 0.5);
         }
 
         .feature-status {
@@ -636,6 +664,328 @@
             overflow-y: auto;
             z-index: 999;
         }
+
+        /* Add these styles in the AI panel section */
+        .ai-prompt-area {
+            margin: 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            display: none;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .ai-prompt-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            border-radius: 6px;
+            color: white;
+            padding: 12px;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            font-size: 14px;
+            line-height: 1.5;
+            font-family: inherit;
+        }
+
+        .ai-prompt-input:focus {
+            border-color: rgba(138, 43, 226, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .ai-prompt-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .ai-preview-section {
+            margin: 0;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .ai-preview-content {
+            color: #fff;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px 8px 0 0;
+            max-height: 300px;
+        }
+
+        .ai-preview-actions {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 8px 8px;
+            border-top: 1px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .ai-accept {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+        }
+
+        .ai-accept:hover {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        .ai-reject {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+
+        .ai-reject:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .ai-loading {
+            display: none;
+            text-align: center;
+            color: #a78bfa;
+            padding: 20px 0;
+            flex-shrink: 0;
+        }
+
+        .ai-loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-feature-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .modal-content button {
+            transition: all 0.2s;
+        }
+
+        .modal-content button:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Add these styles in the AI panel section */
+        .auto-complete-overlay {
+            position: absolute;
+            background: rgba(138, 43, 226, 0.15);
+            border-left: 3px solid #8a2be2;
+            padding: 8px 12px;
+            color: #8a2be2;
+            font-size: 16px;
+            line-height: 1.5;
+            pointer-events: none;
+            white-space: pre-wrap;
+            box-shadow: 0 2px 8px rgba(138, 43, 226, 0.1);
+            backdrop-filter: blur(2px);
+            border-radius: 4px;
+            max-width: 600px;
+        }
+
+        .completion-actions {
+            position: absolute;
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+            background: #ffffff;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .completion-action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .completion-accept {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #16a34a;
+        }
+
+        .completion-accept:hover {
+            background: rgba(34, 197, 94, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .completion-reject {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #dc2626;
+        }
+
+        .completion-reject:hover {
+            background: rgba(239, 68, 68, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .dark-mode .completion-actions {
+            background: #1f2937;
+            border-color: rgba(138, 43, 226, 0.4);
+        }
+
+        .dark-mode .auto-complete-overlay {
+            background: rgba(138, 43, 226, 0.25);
+            color: #d8b4fe;
+            border-left-color: #d8b4fe;
+        }
+
+        /* Add these styles in the AI panel section */
+        .suggestions-panel {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            background: linear-gradient(135deg, #1a1f35 0%, #2d1b4b 100%);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestions-header {
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestions-content {
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .suggestions-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .suggestion-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .suggestion-accept {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+        }
+
+        .suggestion-accept:hover {
+            background: rgba(34, 197, 94, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .suggestion-reject {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+
+        .suggestion-reject:hover {
+            background: rgba(239, 68, 68, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Add to existing styles */
+        .team-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .team-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .team-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .team-member {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .team-member .role {
+            color: #6366f1;
+            font-weight: 500;
+        }
+
+        .dark-mode .team-card {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .dark-mode .team-member {
+            background: #374151;
+            color: #e5e7eb;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -687,6 +1037,11 @@
                         </a>
                     </div>
 
+                    <a href="#" onclick="showCollaborationPage()" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-white hover:bg-indigo-700 transition duration-200">
+                        <i class="fas fa-users"></i>
+                        <span>Collaboration</span>
+                    </a>
+
                     <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-white hover:bg-indigo-700 transition duration-200">
                         <i class="fas fa-pen"></i>
                         <span>Content Creation</span>
@@ -694,10 +1049,6 @@
                     <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-white hover:bg-indigo-700 transition duration-200">
                         <i class="fas fa-video"></i>
                         <span>Video Generation</span>
-                    </a>
-                    <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-white hover:bg-indigo-700 transition duration-200">
-                        <i class="fas fa-users"></i>
-                        <span>Collaboration</span>
                     </a>
                     <a href="#" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg text-white hover:bg-indigo-700 transition duration-200">
                         <i class="fas fa-cog"></i>
@@ -750,6 +1101,10 @@
                                     <button onclick="saveDocument()" class="editor-button bg-indigo-600 text-white hover:bg-indigo-700">
                                         <i class="fas fa-save"></i>
                                         Save
+                                    </button>
+                                    <button onclick="closeDocument()" class="editor-button bg-gray-100 text-gray-700 hover:bg-gray-200">
+                                        <i class="fas fa-times"></i>
+                                        Close
                                     </button>
                                 </div>
                             </div>
@@ -806,7 +1161,7 @@
                             <h3 class="text-xl font-semibold mb-4">AI Features</h3>
                             <p class="text-gray-600 mb-4">Enhance your writing with AI-powered tools.</p>
                             <div class="space-y-2">
-                                <button onclick="showTextEditor(); toggleAIPanel();" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-colors">
+                                <button onclick="createNewDocumentWithAI()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-colors">
                                     <i class="fas fa-robot mr-2"></i>Try AI Copilot
                                 </button>
                             </div>
@@ -851,6 +1206,39 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="document-list">
                             <!-- Documents will be listed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add after drafts-page div and before closing content-area div -->
+                <div id="collaboration-page" class="hidden">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800">Team Collaboration</h2>
+                                <p class="text-gray-600 mt-1">Manage your teams and collaborators</p>
+                            </div>
+                            <button onclick="showCreateTeamModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                                <i class="fas fa-plus"></i>
+                                Create New Team
+                            </button>
+                        </div>
+
+                        <!-- Teams List -->
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold mb-4">My Teams</h3>
+                                <div id="my-teams" class="space-y-4">
+                                    <!-- Teams will be loaded here -->
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold mb-4">Teams I'm Part Of</h3>
+                                <div id="member-teams" class="space-y-4">
+                                    <!-- Teams user is member of will be loaded here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1299,9 +1687,13 @@
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('shareModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
+            const shareModal = document.getElementById('shareModal');
+            const newDocModal = document.getElementById('newDocumentModal');
+            if (event.target == shareModal) {
+                shareModal.style.display = 'none';
+            }
+            if (event.target == newDocModal) {
+                newDocModal.style.display = 'none';
             }
         }
 
@@ -1335,52 +1727,142 @@
         let speaking = false;
         let synthesis = window.speechSynthesis;
 
-        async function generateWithAI() {
-            const content = quill.getText();
-            // TODO: Implement AI generation
-            alert('AI Generation feature coming soon!');
-        }
-
-        function toggleAutoComplete() {
-            const status = document.getElementById('autoCompleteStatus');
-            const isEnabled = status.textContent.includes('Enabled');
+        function toggleAIGenerate() {
+            const promptArea = document.getElementById('aiPromptArea');
+            const aiPreview = document.getElementById('aiPreview');
+            const aiLoading = document.getElementById('aiLoading');
             
-            status.textContent = isEnabled ? 
-                'Smart suggestions as you type' : 
-                'Enabled - Type to see suggestions';
+            promptArea.style.display = promptArea.style.display === 'none' ? 'block' : 'none';
+            
+            // Always hide preview and loading when toggling
+            aiPreview.style.display = 'none';
+            aiLoading.style.display = 'none';
+            
+            // Clear any existing content
+            document.getElementById('aiPrompt').value = '';
+            document.getElementById('aiPreviewContent').textContent = '';
         }
 
-        async function checkGrammar() {
-            const content = quill.getText();
-            // TODO: Implement grammar checking
-            alert('Grammar checking feature coming soon!');
-        }
-
-        async function summarizeContent() {
-            const content = quill.getText();
-            // TODO: Implement content summarization
-            alert('Summarization feature coming soon!');
-        }
-
-        function textToSpeech() {
-            if (speaking) {
-                synthesis.cancel();
-                speaking = false;
-                document.getElementById('ttsStatus').textContent = 'Listen to your content';
+        async function generateWithAI() {
+            const prompt = document.getElementById('aiPrompt').value;
+            const selectedText = quill.getSelection() ? quill.getText(quill.getSelection().index, quill.getSelection().length) : '';
+            
+            if (!prompt) {
+                alert('Please enter a prompt for AI generation');
                 return;
             }
 
-            const content = quill.getText();
-            const utterance = new SpeechSynthesisUtterance(content);
-            
-            utterance.onend = () => {
-                speaking = false;
-                document.getElementById('ttsStatus').textContent = 'Listen to your content';
-            };
+            // Show loading state and ensure preview is hidden
+            document.getElementById('aiLoading').style.display = 'block';
+            document.getElementById('aiPreview').style.display = 'none';
 
-            speaking = true;
-            document.getElementById('ttsStatus').textContent = 'Speaking... (Click to stop)';
-            synthesis.speak(utterance);
+            try {
+                const systemPrompt = selectedText ? 
+                    "You are an AI writing assistant. Modify the provided text based on the user's instructions." :
+                    "You are an AI writing assistant. Generate content based on the user's prompt.";
+
+                const userPrompt = selectedText ?
+                    `Text to modify: "${selectedText}"\nInstructions: ${prompt}` :
+                    prompt;
+
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        systemPrompt,
+                        userPrompt,
+                        model: "mixtral-8x7b-32768",
+                        temperature: 0.7,
+                        max_tokens: 4096
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to generate content');
+                }
+
+                const data = await response.json();
+                const generatedText = data.content;
+
+                // Show preview with generated content
+                document.getElementById('aiPreviewContent').textContent = generatedText;
+                document.getElementById('aiPreview').style.display = 'block';
+            } catch (error) {
+                console.error('AI Generation error:', error);
+                alert(error.message || 'Failed to generate content. Please try again.');
+            } finally {
+                document.getElementById('aiLoading').style.display = 'none';
+            }
+        }
+
+        function acceptAIContent() {
+            const generatedContent = document.getElementById('aiPreviewContent').textContent;
+            const selection = quill.getSelection();
+            
+            if (selection) {
+                // Replace selected text
+                quill.deleteText(selection.index, selection.length);
+                quill.insertText(selection.index, generatedContent);
+            } else {
+                // Insert at cursor position or append to end
+                const position = quill.getSelection()?.index || quill.getLength();
+                quill.insertText(position, generatedContent);
+            }
+            
+            // Generate title based on content
+            generateTitleFromContent();
+            
+            // Hide preview and prompt
+            document.getElementById('aiPreview').style.display = 'none';
+            document.getElementById('aiPromptArea').style.display = 'none';
+            document.getElementById('aiPrompt').value = '';
+        }
+
+        // Add new function for title generation
+        async function generateTitleFromContent() {
+            const content = quill.getText();
+            if (!content.trim()) return;
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        systemPrompt: "You are a title generation assistant. Generate a concise, descriptive title for the given content. The title should be no more than 6 words.",
+                        userPrompt: `Generate a title for this content: ${content.slice(0, 1000)}...`,
+                        model: "mixtral-8x7b-32768",
+                        temperature: 0.7,
+                        max_tokens: 50
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to generate title');
+
+                const data = await response.json();
+                const generatedTitle = data.content.trim();
+                
+                // Update document title
+                document.getElementById('document-title').value = generatedTitle;
+                
+                // Save the document with new title
+                saveDocument();
+            } catch (error) {
+                console.error('Title generation error:', error);
+                // Continue without updating title if generation fails
+            }
+        }
+
+        function rejectAIContent() {
+            // Hide preview and clear prompt
+            document.getElementById('aiPreview').style.display = 'none';
+            document.getElementById('aiPrompt').value = '';
         }
 
         // Add the deleteDocument function in the script section
@@ -1550,6 +2032,448 @@
                 </div>
             `).join('');
         }
+
+        function createNewDocumentWithAI() {
+            createNewDocument().then(() => {
+                toggleAIPanel();
+                toggleAIGenerate();
+            });
+        }
+
+        function closeDocument() {
+            // Save current document before closing
+            if (currentDocId) {
+                saveDocument().then(() => {
+                    // Reset editor state
+                    currentDocId = null;
+                    document.getElementById('document-title').value = '';
+                    quill.setContents([]);
+                    
+                    // Hide editor and AI panel
+                    document.getElementById('editor-section').classList.add('hidden');
+                    const aiPanel = document.getElementById('aiPanel');
+                    const editorSection = document.getElementById('editor-section');
+                    aiPanel.classList.remove('open');
+                    editorSection.classList.remove('panel-open');
+                    
+                    // Show dashboard
+                    document.getElementById('dashboard-content').classList.remove('hidden');
+                    
+                    // Show new document modal
+                    showNewDocumentModal();
+                });
+            }
+        }
+
+        function showNewDocumentModal() {
+            document.getElementById('newDocumentModal').style.display = 'block';
+        }
+
+        function closeNewDocumentModal() {
+            document.getElementById('newDocumentModal').style.display = 'none';
+        }
+
+        let currentCompletion = null;
+        let completionOverlay = null;
+        let completionActions = null;
+
+        function toggleAutoComplete() {
+            const modal = document.getElementById('autoCompleteModal');
+            modal.style.display = 'block';
+        }
+
+        function closeAutoCompleteModal() {
+            const modal = document.getElementById('autoCompleteModal');
+            modal.style.display = 'none';
+        }
+
+        async function startAutoComplete(mode) {
+            closeAutoCompleteModal();
+            
+            const selection = quill.getSelection();
+            let content = '';
+            let position = 0;
+            let systemPrompt = '';
+            let userPrompt = '';
+            
+            if (mode === 'selection' && (!selection || selection.length === 0)) {
+                alert('Please select some text to auto-complete');
+                return;
+            }
+            
+            if (mode === 'selection') {
+                content = quill.getText(selection.index, selection.length);
+                position = selection.index + selection.length;
+                systemPrompt = "You are an AI writing assistant. Complete the given text naturally, maintaining the same style and context. Keep the completion concise and relevant.";
+                userPrompt = `Complete this text naturally: "${content}"`;
+            } else {
+                content = quill.getText();
+                position = 0; // Set position to 0 for full document completion
+                
+                // Enhanced prompt for full document completion
+                systemPrompt = `You are an AI writing assistant. Analyze the given document and provide a complete, enhanced version that:
+1. Maintains and expands upon all existing main points
+2. Preserves the original message and intent
+3. Adds relevant supporting details and examples
+4. Ensures a coherent flow from introduction to conclusion
+5. Improves clarity and readability while keeping the original style
+
+The response should be a complete, standalone document that incorporates and enhances the original content.`;
+                
+                userPrompt = `Here's the current document:
+"${content}"
+
+Please provide a complete, enhanced version of this document that:
+1. Retains and expands upon all main points from the original text
+2. Adds relevant supporting details and examples
+3. Maintains a coherent structure and flow
+4. Includes a proper introduction and conclusion
+5. Preserves the original tone and style while improving clarity
+
+Return the complete document, not just additions or changes.`;
+            }
+
+            // Show loading state
+            const statusElement = document.getElementById('autoCompleteStatus');
+            const originalStatus = statusElement.textContent;
+            statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating completion...';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Authentication token not found. Please log in again.');
+                }
+
+                const requestBody = {
+                    systemPrompt,
+                    userPrompt,
+                    model: "mixtral-8x7b-32768",
+                    temperature: 0.7,
+                    max_tokens: mode === 'selection' ? 200 : 2000 // Increased tokens for full document completion
+                };
+
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Server error: ${response.status}`);
+                }
+
+                const responseData = await response.json();
+                
+                if (!responseData.content) {
+                    throw new Error('No completion content received from server');
+                }
+
+                showCompletion(responseData.content.trim(), position);
+                statusElement.textContent = originalStatus;
+            } catch (error) {
+                console.error('Auto-completion error:', error);
+                statusElement.textContent = originalStatus;
+                
+                // Show error message
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                errorMessage.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>${error.message}</span>
+                    </div>
+                `;
+                document.body.appendChild(errorMessage);
+                
+                setTimeout(() => {
+                    errorMessage.remove();
+                }, 5000);
+            }
+        }
+
+        function showCompletion(completionText, position) {
+            // Remove any existing completion
+            removeCompletion();
+            
+            // Store current completion with mode information
+            currentCompletion = {
+                text: completionText,
+                position: position,
+                mode: position === 0 ? 'full' : 'selection' // Track if this is a full document completion
+            };
+            
+            // Show the suggestions panel
+            const suggestionsPanel = document.getElementById('suggestionsPanel');
+            const suggestionsContent = document.getElementById('suggestionsContent');
+            
+            suggestionsContent.textContent = completionText;
+            suggestionsPanel.style.display = 'block';
+        }
+
+        function removeCompletion() {
+            const suggestionsPanel = document.getElementById('suggestionsPanel');
+            if (suggestionsPanel) {
+                suggestionsPanel.style.display = 'none';
+            }
+            currentCompletion = null;
+        }
+
+        // Update existing event listeners
+        quill.on('text-change', () => {
+            updateWordCount();
+            if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(saveDocument, 2000);
+            
+            // Show saving indicator
+            const saveIndicator = document.getElementById('save-indicator');
+            saveIndicator.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Saving...';
+            saveIndicator.classList.add('visible');
+            
+            // Update stats if panel is open
+            if (document.getElementById('statsPanel').classList.contains('open')) {
+                updateDocumentStats();
+            }
+            
+            // Remove any active completion
+            removeCompletion();
+        });
+
+        quill.on('selection-change', (range) => {
+            if (range) {
+                const [line, offset] = quill.getLine(range.index);
+                document.getElementById('cursor-position').textContent = 
+                    `Line: ${quill.getLength() > 0 ? quill.getLines().indexOf(line) + 1 : 1}, Column: ${range.index + 1}`;
+                
+                // Remove completion if selection changes
+                removeCompletion();
+            }
+        });
+
+        function acceptCompletion() {
+            if (!currentCompletion) return;
+            
+            if (currentCompletion.mode === 'full') {
+                // For full document completion, replace entire content
+                quill.setContents([{ insert: currentCompletion.text }]);
+            } else {
+                // For selection completion, insert at position
+                quill.insertText(currentCompletion.position, currentCompletion.text);
+            }
+            
+            // Generate title if the document is empty or for full document completion
+            if (document.getElementById('document-title').value === 'Untitled Document' || currentCompletion.mode === 'full') {
+                generateTitleFromContent();
+            }
+            
+            // Remove the suggestions panel
+            removeCompletion();
+        }
+
+        // Add to existing JavaScript
+        function showCollaborationPage() {
+            document.getElementById('editor-section').classList.add('hidden');
+            document.getElementById('dashboard-content').classList.add('hidden');
+            document.getElementById('drafts-page').classList.add('hidden');
+            document.getElementById('collaboration-page').classList.remove('hidden');
+            
+            // Load teams data
+            loadTeams();
+        }
+
+        function showCreateTeamModal() {
+            document.getElementById('createTeamModal').style.display = 'block';
+        }
+
+        function closeCreateTeamModal() {
+            document.getElementById('createTeamModal').style.display = 'none';
+            // Reset form
+            document.getElementById('teamName').value = '';
+            document.getElementById('teamDescription').value = '';
+            document.getElementById('memberInputs').innerHTML = `
+                <div class="flex gap-2">
+                    <input type="email" class="member-email w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500" placeholder="Enter member's email">
+                    <select class="member-role p-2 border rounded focus:ring-2 focus:ring-indigo-500">
+                        <option value="editor">Editor</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                    <button onclick="removeMemberInput(this)" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function addMemberInput() {
+            const memberInputs = document.getElementById('memberInputs');
+            const newInput = document.createElement('div');
+            newInput.className = 'flex gap-2';
+            newInput.innerHTML = `
+                <input type="email" class="member-email w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500" placeholder="Enter member's email">
+                <select class="member-role p-2 border rounded focus:ring-2 focus:ring-indigo-500">
+                    <option value="editor">Editor</option>
+                    <option value="viewer">Viewer</option>
+                </select>
+                <button onclick="removeMemberInput(this)" class="text-red-500 hover:text-red-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            memberInputs.appendChild(newInput);
+        }
+
+        function removeMemberInput(button) {
+            const memberInputs = document.getElementById('memberInputs');
+            if (memberInputs.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        async function createTeam() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) return;
+
+            const teamName = document.getElementById('teamName').value.trim();
+            const teamDescription = document.getElementById('teamDescription').value.trim();
+            
+            if (!teamName) {
+                alert('Please enter a team name');
+                return;
+            }
+
+            const memberInputs = document.querySelectorAll('.member-email');
+            const roleInputs = document.querySelectorAll('.member-role');
+            const members = {};
+
+            for (let i = 0; i < memberInputs.length; i++) {
+                const email = memberInputs[i].value.trim();
+                if (email) {
+                    members[email] = roleInputs[i].value;
+                }
+            }
+
+            try {
+                const teamsRef = firebase.database().ref('teams');
+                const newTeamRef = teamsRef.push();
+                
+                await newTeamRef.set({
+                    name: teamName,
+                    description: teamDescription,
+                    createdBy: userId,
+                    createdAt: Date.now(),
+                    members: members
+                });
+
+                closeCreateTeamModal();
+                loadTeams();
+            } catch (error) {
+                console.error('Error creating team:', error);
+                alert('Failed to create team. Please try again.');
+            }
+        }
+
+        async function loadTeams() {
+            const userId = localStorage.getItem('userId');
+            const userEmail = JSON.parse(localStorage.getItem('userProfile')).email;
+            if (!userId) return;
+
+            const teamsRef = firebase.database().ref('teams');
+            
+            try {
+                const snapshot = await teamsRef.once('value');
+                const teams = snapshot.val() || {};
+                
+                // Filter teams created by user
+                const myTeams = Object.entries(teams).filter(([, team]) => team.createdBy === userId);
+                
+                // Filter teams where user is a member
+                const memberTeams = Object.entries(teams).filter(([, team]) => 
+                    team.members && team.members[userEmail] && team.createdBy !== userId
+                );
+
+                renderTeams('my-teams', myTeams, true);
+                renderTeams('member-teams', memberTeams, false);
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        function renderTeams(containerId, teams, isOwner) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (teams.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-users text-4xl mb-2"></i>
+                        <p>${isOwner ? 'You haven\'t created any teams yet' : 'You\'re not part of any teams yet'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            teams.forEach(([teamId, team]) => {
+                const memberCount = team.members ? Object.keys(team.members).length : 0;
+                const card = document.createElement('div');
+                card.className = 'team-card';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-lg font-semibold">${team.name}</h4>
+                            <p class="text-gray-600 text-sm">${team.description || 'No description'}</p>
+                        </div>
+                        ${isOwner ? `
+                            <div class="flex gap-2">
+                                <button onclick="editTeam('${teamId}')" class="text-indigo-600 hover:text-indigo-800">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteTeam('${teamId}')" class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <span><i class="fas fa-users mr-1"></i>${memberCount} member${memberCount !== 1 ? 's' : ''}</span>
+                        <span class="ml-4"><i class="far fa-clock mr-1"></i>Created ${getTimeAgo(new Date(team.createdAt))}</span>
+                    </div>
+                    <div class="team-members">
+                        ${Object.entries(team.members || {}).map(([email, role]) => `
+                            <span class="team-member">
+                                <i class="fas fa-user-circle"></i>
+                                ${email}
+                                <span class="role">(${role})</span>
+                            </span>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function deleteTeam(teamId) {
+            if (!confirm('Are you sure you want to delete this team?')) return;
+
+            const userId = localStorage.getItem('userId');
+            if (!userId) return;
+
+            try {
+                const teamRef = firebase.database().ref(`teams/${teamId}`);
+                await teamRef.remove();
+                loadTeams();
+            } catch (error) {
+                console.error('Error deleting team:', error);
+                alert('Failed to delete team. Please try again.');
+            }
+        }
+
+        // Update the sidebar click handler
+        document.querySelector('a[href="#"][onclick="showCollaborationPage()"]').onclick = function(e) {
+            e.preventDefault();
+            showCollaborationPage();
+        };
     </script>
 
     <!-- Add share modal before closing body tag -->
@@ -1579,45 +2503,79 @@
             <p class="text-sm opacity-70">Your intelligent writing assistant</p>
         </div>
         <div class="ai-panel-content">
-            <button onclick="generateWithAI()" class="ai-feature-button">
-                <span class="ai-feature-icon"><i class="fas fa-magic"></i></span>
-                <div class="flex-1">
-                    <div>Generate with AI</div>
-                    <div class="feature-status">Transform your ideas into content</div>
+            <div class="ai-feature-group">
+                <button onclick="toggleAIGenerate()" class="ai-feature-button">
+                    <span class="ai-feature-icon"><i class="fas fa-magic"></i></span>
+                    <div class="flex-1">
+                        <div>Generate with AI</div>
+                        <div class="feature-status">Transform your ideas into content</div>
+                    </div>
+                </button>
+                
+                <div class="ai-prompt-area" id="aiPromptArea">
+                    <textarea 
+                        class="ai-prompt-input" 
+                        id="aiPrompt"
+                        spellcheck="false"
+                        placeholder="Enter your prompt for AI generation...&#10;Example: 'Rewrite this in a more professional tone' or 'Continue writing from here'"
+                    ></textarea>
+                    <button onclick="generateWithAI()" class="ai-feature-button mt-2">
+                        <span class="ai-feature-icon"><i class="fas fa-bolt"></i></span>
+                        <div class="flex-1">Generate</div>
+                    </button>
                 </div>
-            </button>
+
+                <div class="ai-loading" id="aiLoading">
+                    <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+                    <p class="mt-2">Generating content...</p>
+                </div>
+
+                <div class="ai-preview-section" id="aiPreview">
+                    <div class="ai-preview-content" id="aiPreviewContent"></div>
+                    <div class="ai-preview-actions">
+                        <button class="ai-preview-button ai-accept" onclick="acceptAIContent()">
+                            <i class="fas fa-check mr-2"></i>Accept
+                        </button>
+                        <button class="ai-preview-button ai-reject" onclick="rejectAIContent()">
+                            <i class="fas fa-times mr-2"></i>Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
             
-            <button onclick="toggleAutoComplete()" class="ai-feature-button">
-                <span class="ai-feature-icon"><i class="fas fa-lightbulb"></i></span>
-                <div class="flex-1">
-                    <div>Auto-Complete</div>
-                    <div class="feature-status" id="autoCompleteStatus">Smart suggestions as you type</div>
-                </div>
-            </button>
-            
-            <button onclick="checkGrammar()" class="ai-feature-button">
-                <span class="ai-feature-icon"><i class="fas fa-spell-check"></i></span>
-                <div class="flex-1">
-                    <div>Grammar Check</div>
-                    <div class="feature-status">Perfect your writing</div>
-                </div>
-            </button>
-            
-            <button onclick="summarizeContent()" class="ai-feature-button">
-                <span class="ai-feature-icon"><i class="fas fa-compress-alt"></i></span>
-                <div class="flex-1">
-                    <div>Summarize</div>
-                    <div class="feature-status">Get key points instantly</div>
-                </div>
-            </button>
-            
-            <button onclick="textToSpeech()" class="ai-feature-button">
-                <span class="ai-feature-icon"><i class="fas fa-volume-up"></i></span>
-                <div class="flex-1">
-                    <div>Text to Speech</div>
-                    <div class="feature-status" id="ttsStatus">Listen to your content</div>
-                </div>
-            </button>
+            <div class="ai-feature-group">
+                <button onclick="toggleAutoComplete()" class="ai-feature-button">
+                    <span class="ai-feature-icon"><i class="fas fa-lightbulb"></i></span>
+                    <div class="flex-1">
+                        <div>Auto-Complete</div>
+                        <div class="feature-status" id="autoCompleteStatus">Smart suggestions as you type</div>
+                    </div>
+                </button>
+                
+                <button onclick="checkGrammar()" class="ai-feature-button">
+                    <span class="ai-feature-icon"><i class="fas fa-spell-check"></i></span>
+                    <div class="flex-1">
+                        <div>Grammar Check</div>
+                        <div class="feature-status">Perfect your writing</div>
+                    </div>
+                </button>
+                
+                <button onclick="summarizeContent()" class="ai-feature-button">
+                    <span class="ai-feature-icon"><i class="fas fa-compress-alt"></i></span>
+                    <div class="flex-1">
+                        <div>Summarize</div>
+                        <div class="feature-status">Get key points instantly</div>
+                    </div>
+                </button>
+                
+                <button onclick="textToSpeech()" class="ai-feature-button">
+                    <span class="ai-feature-icon"><i class="fas fa-volume-up"></i></span>
+                    <div class="flex-1">
+                        <div>Text to Speech</div>
+                        <div class="feature-status" id="ttsStatus">Listen to your content</div>
+                    </div>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1696,6 +2654,105 @@
                 <div class="stat-item">
                     <span class="stat-label">Avg. Word Length</span>
                     <span class="stat-value" id="avgWordLength">0 chars</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add new document options modal -->
+    <div id="newDocumentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeNewDocumentModal()">&times;</span>
+            <h2 class="text-xl font-bold mb-4">Create New Document</h2>
+            <div class="space-y-4">
+                <button onclick="createNewDocument()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-file"></i>
+                    Blank Document
+                </button>
+                <button onclick="createNewDocumentWithAI()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-robot"></i>
+                    Document with AI Copilot
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add auto-complete modal -->
+    <div id="autoCompleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAutoCompleteModal()">&times;</span>
+            <h2 class="text-xl font-bold mb-4">Auto-Complete Options</h2>
+            <div class="space-y-4">
+                <button onclick="startAutoComplete('full')" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-file-alt"></i>
+                    Complete Full Document
+                </button>
+                <button onclick="startAutoComplete('selection')" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-i-cursor"></i>
+                    Complete Selected Text
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add before closing body tag -->
+    <div class="suggestions-panel" id="suggestionsPanel">
+        <div class="suggestions-header">
+            <span>AI Suggestion</span>
+            <button onclick="removeCompletion()" class="text-white opacity-70 hover:opacity-100">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="suggestions-content" id="suggestionsContent"></div>
+        <div class="suggestions-actions">
+            <button class="suggestion-btn suggestion-accept" onclick="acceptCompletion()">
+                <i class="fas fa-check"></i> Accept
+            </button>
+            <button class="suggestion-btn suggestion-reject" onclick="removeCompletion()">
+                <i class="fas fa-times"></i> Reject
+            </button>
+        </div>
+    </div>
+
+    <!-- Create Team Modal -->
+    <div id="createTeamModal" class="modal">
+        <div class="modal-content max-w-2xl">
+            <span class="close" onclick="closeCreateTeamModal()">&times;</span>
+            <h2 class="text-xl font-bold mb-4">Create New Team</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Team Name</label>
+                    <input type="text" id="teamName" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500" placeholder="Enter team name">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Team Description</label>
+                    <textarea id="teamDescription" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="Describe your team's purpose"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Add Members</label>
+                    <div class="space-y-2" id="memberInputs">
+                        <div class="flex gap-2">
+                            <input type="email" class="member-email w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500" placeholder="Enter member's email">
+                            <select class="member-role p-2 border rounded focus:ring-2 focus:ring-indigo-500">
+                                <option value="editor">Editor</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                            <button onclick="removeMemberInput(this)" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="addMemberInput()" class="mt-2 text-indigo-600 hover:text-indigo-800">
+                        <i class="fas fa-plus mr-1"></i>Add Another Member
+                    </button>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button onclick="closeCreateTeamModal()" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+                    <button onclick="createTeam()" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Create Team</button>
                 </div>
             </div>
         </div>
