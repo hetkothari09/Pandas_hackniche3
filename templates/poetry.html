@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Poetry Studio</title>
+    
+    <!-- Import Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Import required libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@groq/groq-sdk@latest/dist/umd/index.min.js"></script>
+    
+    <style>
+        /* Main container styling */
+        :root {
+            --primary: #8B5CF6;
+            --primary-dark: #7C3AED;
+            --secondary: #EC4899;
+            --background: #0F172A;
+            --surface: #1E293B;
+            --text: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --success: #10B981;
+            --error: #EF4444;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--background), #1E1B4B);
+            color: var(--text);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Custom poem text styling */
+        .poem-text {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            padding: 2rem;
+            border-left: 4px solid var(--primary);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            margin: 1.5rem 0;
+            white-space: pre-line;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border-radius: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .poem-text:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
+        }
+        
+        .poem-text.english {
+            font-family: 'Georgia', serif;
+        }
+        
+        .poem-text.hindi {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-size: 20px;
+        }
+        
+        /* Title and headers styling */
+        .title-text {
+            background: linear-gradient(120deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .language-selector {
+            text-align: center;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Button styling */
+        button {
+            background: linear-gradient(120deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+            background: linear-gradient(120deg, var(--primary-dark), var(--secondary));
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+        
+        /* Input field styling */
+        textarea, select {
+            width: 100%;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            color: var(--text);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Tabs styling */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab.active {
+            background: linear-gradient(120deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Card styling */
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .metric-card h4 {
+            color: var(--primary);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        /* Grid layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(139, 92, 246, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Radio and checkbox styling */
+        input[type="radio"] {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            margin: 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="radio"]:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Range input styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            margin: 1rem 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Label styling */
+        label {
+            color: var(--text);
+            font-weight: 500;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+
+        /* Analysis results styling */
+        .analysis-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .analysis-metrics p {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .analysis-details p {
+            margin: 0.75rem 0;
+            line-height: 1.6;
+        }
+
+        .suggestions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .suggestions li {
+            margin: 0.75rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .suggestions li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .title-text {
+                font-size: 2.5rem;
+            }
+
+            .main {
+                padding: 1rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                text-align: center;
+                justify-content: center;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        .generated-content {
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Custom select styling */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238B5CF6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.5em;
+            padding-right: 3rem;
+        }
+
+        select:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Style for select options */
+        select option {
+            background-color: var(--surface);
+            color: var(--text);
+            padding: 1rem;
+        }
+
+        /* Form group styling update */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Controls grid update */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(12px);
+        }
+
+        /* Theme and Form dropdowns specific styling */
+        #theme, #form-type, #output-language {
+            height: 3.5rem;
+            font-weight: 500;
+        }
+
+        /* Dropdown container hover effect */
+        .form-group:hover select {
+            border-color: var(--primary);
+        }
+
+        /* Active/focused state for dropdowns */
+        .form-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            select {
+                height: 3rem;
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Main navigation styling */
+        .main-nav {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-group {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .selector-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+        }
+
+        .radio-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Updated tabs styling */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .tab {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 160px;
+            justify-content: center;
+        }
+
+        /* Updated radio button styling */
+        input[type="radio"] {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            margin: 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="radio"]:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Responsive design updates */
+        @media (max-width: 768px) {
+            .nav-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .selector-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .radio-group {
+                flex-grow: 1;
+                justify-content: center;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                width: 100%;
+            }
+        }
+
+        /* Creativity level styling */
+        .creativity-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 1.5rem 0;
+        }
+
+        .creativity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .creativity-header label {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .creativity-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: rgba(139, 92, 246, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            min-width: 4rem;
+            text-align: center;
+        }
+
+        .creativity-slider {
+            position: relative;
+            padding: 1rem 0;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, 
+                var(--primary) 0%, 
+                var(--primary) var(--value-percent), 
+                rgba(255, 255, 255, 0.1) var(--value-percent), 
+                rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 4px;
+            outline: none;
+            margin: 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.1);
+        }
+
+        .creativity-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .creativity-description {
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-style: italic;
+        }
+
+        /* Add these styles to your existing CSS */
+        .creativity-markers {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .creativity-marker {
+            width: 2px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .creativity-marker.active {
+            background: var(--primary);
+        }
+
+        /* Audio player styling */
+        .audio-controls {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .audio-btn {
+            background: linear-gradient(120deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .audio-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .audio-btn:active {
+            transform: scale(0.95);
+        }
+
+        .audio-status {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <!-- Title with icon -->
+        <h1 class="title-text">
+            <span class="icon">✨</span> AI Poetry Studio
+        </h1>
+        
+        <!-- Main navigation bar -->
+        <div class="main-nav">
+            <div class="nav-group">
+                <div class="selector-group">
+                    <label>Language:</label>
+                    <div class="radio-group">
+                        <input type="radio" name="language" value="English" checked id="lang-en">
+                        <label for="lang-en">English</label>
+                        <input type="radio" name="language" value="हिंदी" id="lang-hi">
+                        <label for="lang-hi">हिंदी</label>
+                    </div>
+                </div>
+
+                <div class="selector-group">
+                    <label>Type:</label>
+                    <div class="radio-group">
+                        <input type="radio" name="generation-type" value="Poetry" checked id="type-poetry">
+                        <label for="type-poetry">Poetry</label>
+                        <input type="radio" name="generation-type" value="Shayari" id="type-shayari">
+                        <label for="type-shayari">Shayari</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="write">
+                    <i class="fas fa-pen"></i> Write & Generate
+                </div>
+                <div class="tab" data-tab="analyze">
+                    <i class="fas fa-magnifying-glass"></i> Analyze
+                </div>
+            </div>
+        </div>
+        
+        <!-- Write & Generate tab content -->
+        <div id="write-tab" class="tab-content">
+            <div class="grid">
+                <div class="main-content">
+                    <div class="form-group">
+                        <label for="poem-description">Your Poetry Inspiration</label>
+                        <textarea 
+                            id="poem-description" 
+                            rows="6" 
+                            placeholder="Let your imagination flow... What would you like your poem to be about?"
+                        ></textarea>
+                    </div>
+                    
+                    <div class="controls-grid">
+                        <div class="form-group">
+                            <label for="form-type">Form</label>
+                            <select id="form-type"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="theme">Theme</label>
+                            <select id="theme"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="output-language">Output Language</label>
+                            <select id="output-language">
+                                <option value="English">English</option>
+                                <option value="हिंदी">हिंदी</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="shayari-length" class="form-group" style="display: none;">
+                        <label for="length-selector">Shayari Length</label>
+                        <select id="length-selector">
+                            <option value="short">Short (2-4 lines)</option>
+                            <option value="long">Long (6-10 lines)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="creativity-container">
+                        <div class="creativity-header">
+                            <label for="creativity">Creativity Level</label>
+                            <span class="creativity-value">0.7</span>
+                        </div>
+                        <div class="creativity-slider">
+                            <input 
+                                type="range" 
+                                id="creativity" 
+                                min="0.1" 
+                                max="1.0" 
+                                step="0.1" 
+                                value="0.7"
+                                style="--value-percent: 70%"
+                            >
+                            <div class="creativity-markers">
+                                <div class="creativity-marker active"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                                <div class="creativity-marker"></div>
+                            </div>
+                        </div>
+                        <div class="creativity-labels">
+                            <span>Conservative</span>
+                            <span>Balanced</span>
+                            <span>Experimental</span>
+                        </div>
+                        <div class="creativity-description">
+                            Adjust how creative and experimental the generated poetry will be
+                        </div>
+                    </div>
+                    
+                    <button id="generate-btn" onclick="generatePoem()">
+                        <i class="fas fa-sparkles"></i> Generate Poetry
+                    </button>
+                    
+                    <div id="result" class="generated-content" style="display: none;"></div>
+                    <div id="audio-player" class="audio-player" style="display: none;"></div>
+                </div>
+                
+                <div class="sidebar">
+                    <div class="metric-card">
+                        <h4><i class="fas fa-lightbulb"></i> Writing Tips</h4>
+                        <ul id="writing-tips"></ul>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4><i class="fas fa-magic"></i> Need Inspiration?</h4>
+                        <button onclick="getRandomPrompt()" class="inspiration-btn">
+                            <i class="fas fa-random"></i> Get Random Prompt
+                        </button>
+                        <p id="random-prompt"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analyze tab content -->
+        <div id="analyze-tab" class="tab-content" style="display: none;">
+            <div class="grid">
+                <div class="main-content">
+                    <div class="form-group">
+                        <label for="poem-to-analyze">Your Poetry</label>
+                        <textarea 
+                            id="poem-to-analyze" 
+                            rows="8" 
+                            placeholder="Paste your poem here for analysis..."
+                        ></textarea>
+                    </div>
+                    
+                    <button onclick="analyzePoem()">
+                        <i class="fas fa-magnifying-glass"></i> Analyze Poem
+                    </button>
+                    
+                    <div id="analysis-result" class="generated-content" style="display: none;"></div>
+                </div>
+                
+                <div class="sidebar">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Constants and configurations
+        const API_KEY = "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";
+        const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+        
+        // Poetry forms and themes data
+        const POETRY_FORMS = {
+            "Poetry": {
+                "English": ["Sonnet", "Haiku", "Free Verse", "Limerick", "Narrative", "Ode"],
+                "हिंदी": ["दोहा", "गज़ल", "मुक्त छंद", "कविता", "गीत", "छंद"]
+            },
+            "Shayari": {
+                "English": ["Ghazal", "Nazm", "Rubai", "Qasida", "Free Flow"],
+                "हिंदी": ["ग़ज़ल", "नज़्म", "रुबाई", "क़सीदा", "आज़ाद"]
+            }
+        };
+        
+        const THEMES = {
+            "Poetry": {
+                "English": ["Modern", "Classical", "Romantic", "Nature"],
+                "हिंदी": ["आधुनिक", "शास्त्रीय", "श्रृंगारिक", "प्रकृति"]
+            },
+            "Shayari": {
+                "English": ["Love", "Life", "Philosophy", "Social", "Spiritual"],
+                "हिंदी": ["इश्क़", "ज़िंदगी", "फ़लसफ़ा", "समाज", "रूहानी"]
+            }
+        };
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLanguageContent();
+            setupEventListeners();
+            updateFormAndThemeOptions();
+            
+            // Stop audio on page reload/refresh
+            window.addEventListener('beforeunload', function() {
+                stopAudioPlayback();
+            });
+
+            // Stop audio when page visibility changes (switching tabs/minimizing)
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    stopAudioPlayback();
+                }
+            });
+            
+            // Initialize creativity slider
+            const creativitySlider = document.getElementById('creativity');
+            const creativityValue = document.querySelector('.creativity-value');
+            const creativityMarkers = document.querySelectorAll('.creativity-marker');
+            
+            function updateCreativitySlider(value) {
+                // Update the value display
+                creativityValue.textContent = value;
+                
+                // Update the slider background gradient
+                const percent = ((value - 0.1) / 0.9) * 100;
+                creativitySlider.style.setProperty('--value-percent', `${percent}%`);
+                
+                // Update markers
+                const activeIndex = Math.round((value - 0.1) / 0.1);
+                creativityMarkers.forEach((marker, index) => {
+                    marker.classList.toggle('active', index <= activeIndex);
+                });
+            }
+            
+            // Initial update
+            updateCreativitySlider(creativitySlider.value);
+            
+            // Update on slider change
+            creativitySlider.addEventListener('input', function() {
+                updateCreativitySlider(this.value);
+            });
+        });
+        
+        // Event listeners setup
+        function setupEventListeners() {
+            // Language change
+            document.querySelectorAll('input[name="language"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    updateLanguageContent();
+                });
+            });
+            
+            // Generation type change
+            document.querySelectorAll('input[name="generation-type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Stop any ongoing audio playback
+                    stopAudioPlayback();
+                    updateFormAndThemeOptions();
+                    toggleShayariLength();
+                });
+            });
+            
+            // Update tab switching with content transfer
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // If switching to analyze tab, transfer content
+                    if (targetTab === 'analyze') {
+                        const generatedContent = document.getElementById('result');
+                        const analyzeTextarea = document.getElementById('poem-to-analyze');
+                        
+                        // If there's generated content, use that, otherwise use the input
+                        if (generatedContent && generatedContent.textContent.trim()) {
+                            analyzeTextarea.value = generatedContent.textContent.trim();
+                        } else {
+                            const inputContent = document.getElementById('poem-description').value;
+                            if (inputContent.trim()) {
+                                analyzeTextarea.value = inputContent;
+                            }
+                        }
+                    }
+                    
+                    switchTab(targetTab);
+                });
+            });
+        }
+        
+        // Update language-dependent content
+        function updateLanguageContent() {
+            // Stop any ongoing audio playback
+            stopAudioPlayback();
+            
+            const selectedLanguage = getSelectedLanguage();
+            updateFormAndThemeOptions();
+            updatePlaceholders(selectedLanguage);
+            updateWritingTips(selectedLanguage);
+        }
+        
+        // Get selected language
+        function getSelectedLanguage() {
+            return document.querySelector('input[name="language"]:checked').value;
+        }
+        
+        // Update form and theme options based on current selections
+        function updateFormAndThemeOptions() {
+            const selectedLanguage = getSelectedLanguage();
+            const generationType = document.querySelector('input[name="generation-type"]:checked').value;
+            
+            const formSelect = document.getElementById('form-type');
+            const themeSelect = document.getElementById('theme');
+            
+            // Clear existing options
+            formSelect.innerHTML = '';
+            themeSelect.innerHTML = '';
+            
+            // Add new options
+            POETRY_FORMS[generationType][selectedLanguage].forEach(form => {
+                formSelect.add(new Option(form, form));
+            });
+            
+            THEMES[generationType][selectedLanguage].forEach(theme => {
+                themeSelect.add(new Option(theme, theme));
+            });
+        }
+        
+        // Toggle Shayari length selector visibility
+        function toggleShayariLength() {
+            const generationType = document.querySelector('input[name="generation-type"]:checked').value;
+            const shayariLengthDiv = document.getElementById('shayari-length');
+            shayariLengthDiv.style.display = generationType === 'Shayari' ? 'block' : 'none';
+        }
+        
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Stop any ongoing audio playback
+            stopAudioPlayback();
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Add active class to selected tab
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Show selected tab content
+            document.getElementById(`${tabName}-tab`).style.display = 'block';
+            
+            // If switching to analyze tab, automatically trigger analysis if there's content
+            if (tabName === 'analyze') {
+                const analyzeTextarea = document.getElementById('poem-to-analyze');
+                if (analyzeTextarea.value.trim()) {
+                    analyzePoem(); // Automatically start analysis
+                }
+            }
+        }
+        
+        // Generate poem
+        async function generatePoem() {
+            const description = document.getElementById('poem-description').value;
+            if (!description.trim()) {
+                alert('Please enter a description first!');
+                return;
+            }
+            
+            const selectedLanguage = getSelectedLanguage();
+            const generationType = document.querySelector('input[name="generation-type"]:checked').value;
+            const formType = document.getElementById('form-type').value;
+            const theme = document.getElementById('theme').value;
+            const outputLanguage = document.getElementById('output-language').value;
+            const creativity = document.getElementById('creativity').value;
+            const shayariLength = document.getElementById('length-selector').value;
+            
+            showLoading();
+            
+            try {
+                const poem = await callGroqAPI(description, formType, theme, creativity, outputLanguage, generationType, shayariLength);
+                displayResult(poem, outputLanguage);
+                generateAudio(poem, outputLanguage);
+            } catch (error) {
+                showError(error.message);
+            }
+            
+            hideLoading();
+        }
+        
+        // Call Groq API
+        async function callGroqAPI(description, formType, theme, creativity, language, generationType, shayariLength) {
+            const isShayari = generationType === 'Shayari';
+            
+            const systemPrompt = createSystemPrompt(description, formType, theme, language, isShayari, shayariLength);
+            const userPrompt = `Create a ${theme.toLowerCase()} ${formType.toLowerCase()} about: ${description}`;
+            
+            const response = await fetch(GROQ_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "mixtral-8x7b-32768",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt }
+                    ],
+                    temperature: parseFloat(creativity),
+                    max_tokens: 1000
+                })
+            });
+            
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error?.message || 'Failed to generate poem');
+            }
+            
+            return cleanPoem(data.choices[0].message.content);
+        }
+        
+        // Create system prompt based on parameters
+        function createSystemPrompt(description, formType, theme, language, isShayari, shayariLength) {
+            if (isShayari) {
+                const maxLines = shayariLength === 'short' ? 4 : 10;
+                const minLines = shayariLength === 'short' ? 2 : 6;
+                
+                if (language === 'हिंदी') {
+                    return `आप एक अनुभवी शायर हैं। निम्नलिखित विषय पर एक भावपूर्ण ${shayariLength === 'short' ? 'लघु' : 'विस्तृत'} शायरी लिखें:
+                    विषय: ${description}
+                    
+                    निर्देश:
+                    - ${minLines}-${maxLines} पंक्तियाँ
+                    - गहरी भावनाओं की अभिव्यक्ति
+                    - सरल लेकिन प्रभावशाली भाषा
+                    - शुद्ध हिंदी में लिखें
+                    - विषय: ${theme}
+                    - शैली: ${formType}`;
+                } else {
+                    return `You are a master of English poetry. Create a deeply emotional ${shayariLength} verse on the following theme:
+                    Theme: ${description}
+                    
+                    Guidelines:
+                    - ${minLines}-${maxLines} lines
+                    - Express deep emotions
+                    - Simple yet impactful language
+                    - Theme: ${theme}
+                    - Style: ${formType}`;
+                }
+            } else {
+                if (language === 'हिंदी') {
+                    return `आप एक प्रतिभाशाली कवि हैं। कृपया निम्नलिखित विषय पर एक कविता की रचना करें:
+                    विषय: ${description}
+                    
+                    निर्देश:
+                    - काव्य रूप: ${formType}
+                    - विषय: ${theme}
+                    - भावपूर्ण अभिव्यक्ति
+                    - सुंदर बिम्ब और प्रतीक
+                    - शुद्ध हिंदी में लिखें`;
+                } else {
+                    return `You are a master poet specializing in ${theme.toLowerCase()} poetry.
+                    Create a ${formType.toLowerCase()} based on the following description:
+                    ${description}
+                    
+                    Guidelines:
+                    - Follow ${formType} structure
+                    - Theme: ${theme}
+                    - Use vivid imagery
+                    - Include emotional depth
+                    - Maintain consistent style`;
+                }
+            }
+        }
+        
+        // Clean generated poem
+        function cleanPoem(poem) {
+            return poem.trim()
+                .replace(/```\w*\n?/g, '')
+                .replace(/poem/gi, '');
+        }
+        
+        // Display result with audio button
+        function displayResult(poem, language) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="poem-text ${language === 'English' ? 'english' : 'hindi'}">${poem}</div>
+                <div class="audio-controls">
+                    <button class="audio-btn" onclick="toggleAudio('${language}')">
+                        <i class="fas fa-play" id="audio-icon"></i>
+                    </button>
+                    <span class="audio-status">Click to hear the poem</span>
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Audio functionality
+        let speechSynthesis = window.speechSynthesis;
+        let speaking = false;
+        let currentUtterance = null;
+
+        function toggleAudio(language) {
+            const poemText = document.querySelector('.poem-text').textContent;
+            const audioIcon = document.getElementById('audio-icon');
+            const audioStatus = document.querySelector('.audio-status');
+            
+            if (speaking) {
+                stopAudioPlayback();
+                return;
+            }
+
+            // Start speaking
+            speaking = true;
+            audioIcon.className = 'fas fa-pause';
+            audioStatus.textContent = 'Playing...';
+
+            currentUtterance = new SpeechSynthesisUtterance(poemText);
+            
+            // Set language and voice
+            if (language === 'हिंदी') {
+                currentUtterance.lang = 'hi-IN';
+            } else {
+                currentUtterance.lang = 'en-US';
+            }
+
+            // Get available voices
+            let voices = speechSynthesis.getVoices();
+            
+            // Select appropriate voice
+            let voice = voices.find(v => v.lang === currentUtterance.lang) || 
+                       voices.find(v => v.lang.startsWith(currentUtterance.lang.split('-')[0])) ||
+                       voices[0];
+            
+            if (voice) {
+                currentUtterance.voice = voice;
+            }
+
+            // Set properties
+            currentUtterance.rate = 0.9; // Slightly slower for better clarity
+            currentUtterance.pitch = 1;
+
+            // Handle end of speech
+            currentUtterance.onend = function() {
+                speaking = false;
+                audioIcon.className = 'fas fa-play';
+                audioStatus.textContent = 'Click to hear the poem';
+            };
+
+            // Handle errors
+            currentUtterance.onerror = function(event) {
+                speaking = false;
+                audioIcon.className = 'fas fa-play';
+                audioStatus.textContent = 'Error playing audio';
+                console.error('Speech synthesis error:', event);
+            };
+
+            // Start speaking
+            speechSynthesis.speak(currentUtterance);
+        }
+
+        // Initialize voices when they are loaded
+        speechSynthesis.onvoiceschanged = function() {
+            speechSynthesis.getVoices();
+        };
+        
+        // Generate and play audio
+        async function generateAudio(text, language) {
+            try {
+                const audioPlayer = document.getElementById('audio-player');
+                audioPlayer.style.display = 'none';
+            } catch (error) {
+                console.error('Audio generation failed:', error);
+            }
+        }
+
+        // Update stopAudioPlayback function to be more robust
+        function stopAudioPlayback() {
+            if (speechSynthesis) {
+                speechSynthesis.cancel(); // Cancel any ongoing speech
+                speaking = false;
+                currentUtterance = null;
+                
+                // Reset UI elements if they exist
+                const audioIcon = document.getElementById('audio-icon');
+                const audioStatus = document.querySelector('.audio-status');
+                if (audioIcon) audioIcon.className = 'fas fa-play';
+                if (audioStatus) audioStatus.textContent = 'Click to hear the poem';
+            }
+        }
+        
+        // Show/hide loading spinner
+        function showLoading() {
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('result').appendChild(spinner);
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        function hideLoading() {
+            const spinner = document.querySelector('.spinner');
+            if (spinner) {
+                spinner.remove();
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="error" style="color: red;">Error: ${message}</div>`;
+            resultDiv.style.display = 'block';
+        }
+        
+        // Get random prompt
+        function getRandomPrompt() {
+            const selectedLanguage = getSelectedLanguage();
+            const prompts = {
+                "English": [
+                    "A sunset over the ocean waves",
+                    "The first snowfall of winter",
+                    "A busy city street at midnight",
+                    "A garden blooming in spring"
+                ],
+                "हिंदी": [
+                    "सूर्यास्त के समय समुद्र की लहरें",
+                    "सर्दियों की पहली बर्फबारी",
+                    "आधी रात की व्यस्त सड़क",
+                    "बसंत में खिलता हुआ बगीचा"
+                ]
+            };
+            
+            const randomPrompt = prompts[selectedLanguage][Math.floor(Math.random() * prompts[selectedLanguage].length)];
+            document.getElementById('random-prompt').textContent = randomPrompt;
+        }
+        
+        // Update placeholders based on language
+        function updatePlaceholders(language) {
+            const placeholders = {
+                "English": {
+                    "poem-description": "Let your imagination flow... What would you like your poem to be about?",
+                    "poem-to-analyze": "Paste your poem here for analysis..."
+                },
+                "हिंदी": {
+                    "poem-description": "अपनी कल्पना को बहने दें... आप किस विषय पर कविता लिखना चाहेंगे?",
+                    "poem-to-analyze": "विश्लेषण के लिए अपनी रचना यहाँ पेस्ट करें..."
+                }
+            };
+            
+            document.getElementById('poem-description').placeholder = placeholders[language]["poem-description"];
+            document.getElementById('poem-to-analyze').placeholder = placeholders[language]["poem-to-analyze"];
+        }
+        
+        // Update writing tips based on language
+        function updateWritingTips(language) {
+            const tips = {
+                "English": [
+                    "Be specific in your description",
+                    "Consider your chosen form's rules",
+                    "Experiment with different themes",
+                    "Try various creativity levels"
+                ],
+                "हिंदी": [
+                    "विवरण में विशिष्ट रहें",
+                    "चुने गए काव्य रूप के नियमों पर ध्यान दें",
+                    "विभिन्न विषयों का प्रयोग करें",
+                    "विभिन्न रचनात्मकता स्तरों का प्रयोग करें"
+                ]
+            };
+            
+            const tipsList = document.getElementById('writing-tips');
+            tipsList.innerHTML = tips[language].map(tip => `<li>${tip}</li>`).join('');
+        }
+        
+        // Analyze poem
+        async function analyzePoem() {
+            const poem = document.getElementById('poem-to-analyze').value;
+            if (!poem.trim()) {
+                alert('Please enter a poem to analyze!');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const analysis = await analyzePoetry(poem);
+                displayAnalysis(analysis);
+            } catch (error) {
+                showError(error.message);
+            }
+            
+            hideLoading();
+        }
+        
+        // Analyze poetry function
+        async function analyzePoetry(poem) {
+            try {
+                // Get basic metrics
+                const metrics = {
+                    line_count: poem.split('\n').filter(line => line.trim()).length,
+                    word_count: poem.split(/\s+/).filter(word => word.trim()).length,
+                    char_count: poem.length,
+                    average_line_length: poem.length / Math.max(1, poem.split('\n').filter(line => line.trim()).length)
+                };
+
+                // Get detailed analysis
+                const analysisPrompt = `Analyze this poem and provide a detailed analysis. Include:
+                1. Rhyme scheme analysis
+                2. Mood and emotional tone
+                3. Literary devices used
+                4. Main themes
+                5. Suggestions for improvement
+
+                Respond in this exact JSON format:
+                {
+                    "rhyme_scheme": "detailed analysis of rhyme pattern",
+                    "mood": "detailed mood analysis",
+                    "literary_devices": ["device1", "device2", ...],
+                    "themes": ["theme1", "theme2", ...],
+                    "suggestions": ["suggestion1", "suggestion2", ...]
+                }
+
+                Poem to analyze:
+                ${poem}`;
+
+                const analysisResponse = await fetch(GROQ_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "mixtral-8x7b-32768",
+                        messages: [
+                            { role: "system", content: "You are a poetry analysis expert. Provide detailed analysis in JSON format." },
+                            { role: "user", content: analysisPrompt }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 1000
+                    })
+                });
+
+                if (!analysisResponse.ok) {
+                    throw new Error('Failed to analyze poem');
+                }
+
+                const analysisData = await analysisResponse.json();
+                let analysis = JSON.parse(analysisData.choices[0].message.content);
+
+                // Get enhanced version
+                const enhancedVersion = await enhancePoem(poem, analysis);
+
+                return {
+                    metrics: metrics,
+                    rhyme_scheme: analysis.rhyme_scheme,
+                    mood: analysis.mood,
+                    literary_devices: analysis.literary_devices,
+                    themes: analysis.themes,
+                    suggestions: analysis.suggestions,
+                    enhanced_version: enhancedVersion,
+                    original_poem: poem
+                };
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                throw new Error(`Failed to analyze poem: ${error.message}`);
+            }
+        }
+
+        // Enhance poem function
+        async function enhancePoem(poem, analysis) {
+            try {
+                const enhancementPrompt = `Enhance this poem while maintaining its original essence and style.
+                    Themes: ${analysis.themes.join(', ')}
+                    Mood: ${analysis.mood}
+                    
+                    Original poem:
+                    ${poem}
+                    
+                    Instructions:
+                    - Strengthen imagery and metaphors
+                    - Improve rhythm and flow
+                    - Deepen emotional resonance
+                    - Enhance word choice
+                    
+                    Provide only the enhanced poem, no additional comments.`;
+
+                const response = await fetch(GROQ_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "mixtral-8x7b-32768",
+                        messages: [
+                            { role: "system", content: "You are a master poet specializing in poem enhancement." },
+                            { role: "user", content: enhancementPrompt }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1000
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to enhance poem');
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content.trim();
+
+            } catch (error) {
+                console.error('Enhancement error:', error);
+                throw new Error(`Failed to enhance poem: ${error.message}`);
+            }
+        }
+
+        // Display analysis results with error handling
+        function displayAnalysis(analysis) {
+            try {
+                const resultDiv = document.getElementById('analysis-result');
+                
+                resultDiv.innerHTML = `
+                    <div class="metric-card">
+                        <h4>Analysis Results</h4>
+                        <div class="analysis-metrics">
+                            <p>Lines: ${analysis.metrics.line_count}</p>
+                            <p>Words: ${analysis.metrics.word_count}</p>
+                            <p>Characters: ${analysis.metrics.char_count}</p>
+                            <p>Average Line Length: ${Math.round(analysis.metrics.average_line_length)}</p>
+                        </div>
+                        <div class="analysis-details">
+                            <p><strong>Rhyme Scheme:</strong> ${analysis.rhyme_scheme}</p>
+                            <p><strong>Mood:</strong> ${analysis.mood}</p>
+                            <p><strong>Literary Devices:</strong> ${analysis.literary_devices.join(', ')}</p>
+                            <p><strong>Themes:</strong> ${analysis.themes.join(', ')}</p>
+                        </div>
+                        <div class="suggestions">
+                            <h4>Improvement Suggestions:</h4>
+                            <ul>
+                                ${analysis.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                console.error('Display error:', error);
+                showError(`Failed to display analysis: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html> 

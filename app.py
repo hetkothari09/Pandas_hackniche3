@@ -394,6 +394,10 @@ def require_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.route('/poetry')
+def poetry():
+    return render_template('poetry.html')
+
 @app.route('/api/generate', methods=['POST'])
 @require_auth
 def generate():
